@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  
+  --color-africa-earth: #8B4513;
+  --color-africa-gold: #D4AF37;
+  --color-africa-sand: #F5DEB3;
+  --color-africa-green: #2D5A27;
+  --color-africa-sunset: #FF4500;
+}
+
+@layer base {
+  body {
+    @apply bg-stone-50 text-stone-900 font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold tracking-tight;
+  }
+}
+
+.glass-card {
+  @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-africa-earth to-africa-sunset;
+}

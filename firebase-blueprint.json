@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "Post": {
+      "title": "Blog Post",
+      "description": "A travel blog post",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "content": { "type": "string" },
+        "category": { "type": "string", "enum": ["Sights", "Culture", "Food", "Adventure"] },
+        "region": { "type": "string", "enum": ["North", "South", "East", "West", "Central"] },
+        "image": { "type": "string" },
+        "author": { "type": "string" },
+        "authorUid": { "type": "string" },
+        "date": { "type": "string" },
+        "readTime": { "type": "string" },
+        "likesCount": { "type": "number" }
+      },
+      "required": ["title", "content", "category", "region", "image", "author", "authorUid"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "A comment on a blog post",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhoto": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isGuest": { "type": "boolean" }
+      },
+      "required": ["postId", "userId", "text", "createdAt", "isGuest"]
+    },
+    "Like": {
+      "title": "Like",
+      "description": "A like on a blog post",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "required": ["postId", "userId"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user of the application",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Collection of blog posts"
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments for a specific post"
+    },
+    "/posts/{postId}/likes/{userId}": {
+      "schema": "Like",
+      "description": "Likes for a specific post"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and roles"
+    }
+  }
+}

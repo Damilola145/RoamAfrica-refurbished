@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: posts
+    // Fields: title, excerpt, content, category, region, image, author, authorUid, date, readTime, likesCount
+    //
+    // Collection: posts/{postId}/comments
+    // Fields: postId, userId, userName, userPhoto, text, createdAt, isGuest
+    //
+    // Collection: posts/{postId}/likes
+    // Fields: postId, userId
+    //
+    // Collection: users
+    // Fields: uid, email, displayName, photoURL, role
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (
+          request.auth.token.email == "damilolaolonitola807@gmail.com" ||
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+        );
+    }
+
+    function isValidPost(data) {
+      return data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.excerpt is string && data.excerpt.size() < 500 &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 50000 &&
+             data.category in ['Sights', 'Culture', 'Food', 'Adventure'] &&
+             data.region in ['North', 'South', 'East', 'West', 'Central'] &&
+             data.image is string && data.image.size() < 1000;
+    }
+
+    function isValidComment(data) {
+      return data.text is string && data.text.size() > 0 && data.text.size() < 1000 &&
+             data.userId is string && data.userName is string &&
+             data.isGuest is bool;
+    }
+
+    // Rules
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidPost(request.resource.data);
+      allow update: if isAdmin() || (isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount']));
+      allow delete: if isAdmin();
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isValidComment(request.resource.data) && 
+                      (
+                        (isAuthenticated() && request.resource.data.userId == request.auth.uid && request.resource.data.isGuest == false) ||
+                        (request.resource.data.isGuest == true && request.resource.data.userId == 'guest')
+                      );
+        allow update: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid && isValidComment(request.resource.data));
+        allow delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      }
+
+      match /likes/{userId} {
+        allow read: if true;
+        allow write: if isOwner(userId);
+      }
+    }
+  }
+}
